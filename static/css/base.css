@@ -1,0 +1,13 @@
+ul, li{
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+}
+
+body{
+    padding-top: 70px;
+}
+
+.navbar{
+    margin-bottom: 20px;
+}

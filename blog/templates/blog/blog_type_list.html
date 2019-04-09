@@ -1,0 +1,11 @@
+{% extends 'blog/blog_list.html' %}
+
+{% block title %}
+    {{ blog_type.type_name }}
+{% endblock %}
+
+{% block blog-list-title %}
+    分类：{{ blog_type.type_name }}
+{% endblock %}
+
+

@@ -1,0 +1,9 @@
+{% extends 'blog/blog_list.html' %}
+
+{% block title %}
+    {{ blog_type.type_name }}
+{% endblock %}
+
+{% block blog-list-title %}
+    日期归档：{{ blog_cur_date }}
+{% endblock %}

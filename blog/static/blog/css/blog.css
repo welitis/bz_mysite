@@ -1,0 +1,33 @@
+ul.blog-types{
+    list-style: none;
+    padding: 0px;
+}
+
+div.blog h3{
+    margin-top: 0.5em;
+}
+
+div.blog:not(:last-child){
+    border-bottom: 1px solid #EEE;
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+}
+
+ul.blog-info-desc{
+    margin-bottom: 2em;
+}
+ul.blog-info-desc li{
+    display: inline-block;
+    margin-right: 2em;
+}
+nav.paginator{
+    text-align: center;
+}
+
+ul.blog-info-desc>li{
+    margin-right: 20px;
+}
+
+p.blog-info>span:not(:first-child){
+    margin-left: 20px;
+}
