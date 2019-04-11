@@ -1,4 +1,6 @@
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
+
+from comment.models import Comment
 from .models import *
 from django.conf import settings
 from django.db.models import Count
@@ -55,7 +57,7 @@ def get_blog_list_common_data(request, blogs_all_list):
 def blog_list(request):
     blogs = Blog.objects.all()
     context = get_blog_list_common_data(request, blogs)
-    return render_to_response('blog/blog_list.html', context)
+    return render(request,'blog/blog_list.html', context)
 
 
 def blog_type_list(request, blog_type_pk):
@@ -63,7 +65,7 @@ def blog_type_list(request, blog_type_pk):
     blogs = Blog.objects.filter(blog_type=blog_type).all()
     context = get_blog_list_common_data(request, blogs)
     context['blog_type'] = blog_type
-    return render_to_response('blog/blog_type_list.html', context)
+    return render(request,'blog/blog_type_list.html', context)
 
 
 def blog_date_list(request, year, month):
@@ -72,17 +74,22 @@ def blog_date_list(request, year, month):
     context = get_blog_list_common_data(request, blogs)
     # 获取按月分类的datetime对象列表
     context['blog_cur_date'] = "%s年%s月" % (year, month)
-    return render_to_response('blog/blog_date_list.html', context)
+    return render(request,'blog/blog_date_list.html', context)
 
 
 def blog_detail(request, blog_pk):
+    blog = get_object_or_404(Blog, id=blog_pk)
+    blog_content_type = ContentType.objects.get_for_model(blog)
+    comments = Comment.objects.filter(content_type=blog_content_type, object_id=blog.pk)
     context = {}
-    context['blog'] = get_object_or_404(Blog, id=blog_pk)
+    context['blog'] = blog
     # 阅读计数
     read_cookie_key = read_statistics_once_read(request, blog_pk)
     context['previous_blog'] = Blog.objects.filter(created_time__gt=context['blog'].created_time).last()
     context['next_blog'] = Blog.objects.filter(created_time__lt=context['blog'].created_time).first()
-    response = render_to_response('blog/blog_detail.html', context)
+    context['user'] = request.user
+    context['comments'] = comments
+    response = render(request,'blog/blog_detail.html', context)
     if read_cookie_key:
         response.set_cookie(read_cookie_key, 'true')
     return response

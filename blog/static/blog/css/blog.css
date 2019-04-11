@@ -31,3 +31,11 @@ ul.blog-info-desc>li{
 p.blog-info>span:not(:first-child){
     margin-left: 20px;
 }
+/* 评论 */
+div.comment-area{
+    margin-top: 2em;
+}
+h3.comment-area-title{
+    border-bottom: 1px solid gray;
+    padding-bottom: 10px;
+}

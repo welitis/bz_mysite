@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'ckeditor',
     'blog',
     'read_statistics',
+    'comment',
 ]
 # Application definition
 
