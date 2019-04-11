@@ -27,7 +27,7 @@ def get_seven_days_read_data(content_type):
     today = timezone.now().date()
     dates = []
     read_nums = []
-    for i in range(10, 3, -1):
+    for i in range(7, 0, -1):
         date = today - datetime.timedelta(days=i)
         dates.append(date.strftime('%m-%d'))
         read_details = ReadDetail.objects.filter(content_type=content_type, date=date)
@@ -48,10 +48,3 @@ def get_yesterday_hot_data(content_type):
     return read_details
 
 
-def get_7_days_hot_data(content_type):
-    today = timezone.now().date()
-    passtime = timezone.now().date() - datetime.timedelta(days=7)
-    read_details = ReadDetail.objects.filter(content_type=content_type, date__lt=today, date__gte=passtime)\
-                       .values('content_type', 'object_id').annotate(read_num_sum=Sum('read_num'))\
-                       .order_by('-read_num')[:5]
-    return read_details
