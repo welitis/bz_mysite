@@ -1,6 +1,5 @@
 from django.shortcuts import render, get_object_or_404
 
-from comment.models import Comment
 from .models import *
 from django.conf import settings
 from django.db.models import Count
@@ -79,8 +78,6 @@ def blog_date_list(request, year, month):
 
 def blog_detail(request, blog_pk):
     blog = get_object_or_404(Blog, id=blog_pk)
-    blog_content_type = ContentType.objects.get_for_model(blog)
-    comments = Comment.objects.filter(content_type=blog_content_type, object_id=blog.pk)
     context = {}
     context['blog'] = blog
     # 阅读计数
@@ -88,7 +85,6 @@ def blog_detail(request, blog_pk):
     context['previous_blog'] = Blog.objects.filter(created_time__gt=context['blog'].created_time).last()
     context['next_blog'] = Blog.objects.filter(created_time__lt=context['blog'].created_time).first()
     context['user'] = request.user
-    context['comments'] = comments
     response = render(request,'blog/blog_detail.html', context)
     if read_cookie_key:
         response.set_cookie(read_cookie_key, 'true')

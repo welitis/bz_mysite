@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load comment_tags %}
 {% block title %}
     我的网站
 {% endblock %}
@@ -27,6 +28,7 @@
                                 <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
                                 {{ blog.created_time|date }}
                                 <span>阅读</span>({{ blog.get_read_num }})
+                                <span>评论</span>({% get_comment_count blog %})
                             </p>
                         </div>
                     {% empty %}

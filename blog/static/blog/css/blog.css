@@ -39,3 +39,26 @@ h3.comment-area-title{
     border-bottom: 1px solid gray;
     padding-bottom: 10px;
 }
+
+div.django-ckeditor-widget{
+    width: 100%;
+}
+div.comment{
+    border-bottom: 1px dashed #ccc;
+    margin-bottom: 0.5em;
+    padding-bottom: 0.5em;
+}
+div.reply{
+    margin-left: 2em;
+}
+div#reply-content_container{
+    border: 1px solid #d1d1d1;
+    border-bottom: none;
+    overflow: hidden;
+    background: #f8f8f8;
+    padding: 1em 1em 0.5em;
+}
+#reply-content_container>p{
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 0.5em;
+}

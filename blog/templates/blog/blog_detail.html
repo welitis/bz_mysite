@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load comment_tags %}
 {% block title %}
     {{ blog.title }}
 {% endblock %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
+    <script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+    <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
 {% endblock %}
 
 {% block nav_blog_active %}active{% endblock %}
@@ -17,28 +19,32 @@
             <div class="col-xs-10 col-xs-offset-1">
                 <h3>{{ blog.title }}</h3>
                 <ul class="blog-info-desc">
-                    <li>作者：{{ blog.author }}</li>
+                    <li>作者:{{ blog.author }}</li>
                     <li>
-                        分类：
+                        分类:
                         <a href="{% url 'blog:blog_type_list' blog.blog_type.id %}">{{ blog.blog_type }}</a>
                     </li>
                     <li>
-                        发布日期：{{ blog.created_time|date:'Y-m-d G:H:s' }}
+                        发布日期:{{ blog.created_time|date:'Y-m-d G:H:s' }}
                     </li>
                     <li>
                         阅读量({{ blog.get_read_num }})
                     </li>
+                    <li>
+                        评论数({% get_comment_count blog %})
+                    </li>
+
                 </ul>
                 <div class="blog-content">{{ blog.content|safe }}</div>
                 <nav aria-label="...">
                   <ul class="pager">
                       {% if previous_blog %}
-                    <li><a href="{% url 'blog:blog_detail' previous_blog.id %}">上一篇：{{ previous_blog.title }}</a></li>
+                    <li><a href="{% url 'blog:blog_detail' previous_blog.id %}">上一篇：{{ previous_blog.title|truncatechars:20 }}</a></li>
                       {% else %}
                       <li><span>没有了</span></li>
                       {% endif %}
                   {% if next_blog %}
-                    <li><a href="{% url 'blog:blog_detail' next_blog.id %}">下一篇：{{ next_blog.title }}</a></li>
+                    <li><a href="{% url 'blog:blog_detail' next_blog.id %}">下一篇：{{ next_blog.title|truncatechars:20 }}</a></li>
                       {% else %}
                       <li><span>没有了</span></li>
                       {% endif %}
@@ -52,14 +58,17 @@
                     <h3 class="comment-area-title">评论区域</h3>
                     {% if user.is_authenticated %}
                         <h5>{{ user.username }}, 欢迎评论\(^o^)/~</h5>
-                        <form action="{% url 'comment:update_comment' %}" method="post" style="overflow: hidden">
+                        <form id="comment-form" action="{% url 'comment:update_comment' %}" method="post" style="overflow: hidden">
                             {% csrf_token %}
-                            <div class="form-group">
-                                <textarea class="form-control" rows="3" name="content"></textarea>
+                            <div id="reply-content_container" style="display: none;">
+                                <p>回复</p>
+                                <div id="reply-content"></div>
                             </div>
-                            <button type="submit" class="btn btn-primary" style="float:right">评论</button>
-                            <input type="hidden" name='object_id' value="{{ blog.id }}">
-                            <input type="hidden" name="content_type" value="blog">
+                            <div class="form-group">
+                                {% get_comment_form blog %}
+                                <span id="comment-error" class="text-danger pull-left"></span>
+                            </div>
+                            <button type="submit" class="btn btn-primary pull-right" style="float:right">评论</button>
                         </form>
                     {% else %}
                         你尚未登录，点击 <a href="{% url 'login' %}?from={{ request.path }}">登录</a>
@@ -68,18 +77,113 @@
                 </div>
                 <div class="comment-area">
                     <h3 class="comment-area-title">评论列表</h3>
-                    {% for comment in comments %}
-                        <div>
-                            {{ comment.comment_user.username }}
-                            {{ comment.comment_time|date:"Y-m-d H:i:s" }}
-                            {{ comment.content }}
+                    <div id="comment-list">
+                    {% get_comment_list blog as comments %}
+                        {% for comment in comments %}
+                        <div class="comment">
+                            <span id="comment_user_{{ comment.pk }}">{{ comment.comment_user.username }}</span>
+                            <span>{{ comment.comment_time|date:"Y-m-d H:i:s" }}</span>
+                            <span id="comment_{{ comment.pk }}">{{ comment.content|safe }}</span>
+                            <a href="javascript:reply({{ comment.pk }})">回复</a>
+
+                            {% for reply in comment.root_comment.all %}
+                                <div class="reply">
+                                    <span id="comment_user_{{ reply.pk }}">{{ reply.comment_user.username }}</span>
+                                    <span>{{ reply.comment_time|date:"Y-m-d H:i:s" }}</span>
+                                    <span>回复</span>
+                                    <span>{{ comment.comment_user.username }}:</span>
+                                    <span id="comment_{{ reply.pk }}">{{ reply.content|safe }}</span>
+                                    <a href="javascript:reply({{ reply.pk }})">回复</a>
+                                </div>
+                            {% endfor %}
                         </div>
                     {% empty %}
-                        暂无评论
+                        <span id="non-comment">暂无评论</span>
                     {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        function numFormat(num){
+            return ('00' + num).substr(-2);
+        }
+        function timeFormat(timestamp){
+            var datetime = new Date(timestamp*1000);
+            var year = numFormat(datetime.getFullYear());
+            var month = numFormat(datetime.getMonth() + 1);
+            var day = numFormat(datetime.getDate());
+            var hour = numFormat(datetime.getHours());
+            var minute = numFormat(datetime.getMinutes());
+            var second = numFormat(datetime.getSeconds());
+            return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+        }
+
+        $('#comment-form').submit(function(){
+             // 判断是否为空
+            $("#comment-error").text('');
+            if (CKEDITOR.instances['id_text'].document.getBody().getText().trim()==''){
+                $('#comment-error').text('评论内容不能为空');
+                return false;
+            };
+            // 更新数据到textarea
+            CKEDITOR.instances['id_text'].updateElement();
+
+            // 异步提交
+            $.ajax({
+                url: "{% url 'comment:update_comment' %}",
+                type: "POST",
+                data: $(this).serialize(),
+                cache: false,
+                success: function(data){
+                    console.log(data);
+                    if (data['status']=='success'){
+                        // 插入数据
+                    $("#non-comment").text('');// 清除暂无评论
+                    if($("#reply_comment_id").val()=='0'){
+                        // 插入评论
+                        var comment_html='<div class="comment">'+ '<span id="comment_user_'+data['pk']+'">'+data['username']+
+                        '</span> <span>'+timeFormat(data['comment_time'])+'</span> <span id="comment_'+data['pk']+'">'+data['text']+'</span><a href="javascript:reply('+data['pk']+')">回复</a> </div>';
+                        $("#comment-list").prepend(comment_html);
+                    }else{
+                        // 插入回复
+                        var comment_html = '<div class="reply">'+
+                            '<span id="comment_user_'+data['pk']+'">'+data['username']+'</span><span>'+timeFormat(data['comment_time'])+'</span> <span>回复</span> <span>'+data['username']+':</span> <span id="comment_'+data['pk']+'">'+data['text']+'</span><a href="javascript:reply('+data['pk']+')">回复</a></div>'
+                        $("#comment_"+data['root_id']).parent().append(comment_html);
+                    }
+                    $('#comment-error').text("评论成功");
+                    // 清除回复id
+                    $("#reply_comment_id").val('0');
+                    // 关闭回复显示
+                    $("#reply-content_container").hide();
+                    // 清空编辑框的内容
+                     CKEDITOR.instances['id_text'].setData('');
+                    }else {
+                        // 显示错误信息
+                        $('#comment-error').text(data['data']['text']);
+                    }
+                },
+                error: function(xhr){
+                    console.log('错误', xhr);
+                }
+            });
+            return false;
+        });
+
+        // 给回复链接绑定事件
+        function reply(comment_id){
+            // 设置值
+            var html = $("#comment_user_" + comment_id).html()+":"+$("#comment_" + comment_id).html();
+            $("#reply-content").html(html);
+            $("#reply-content_container").show();
+            $("#reply_comment_id").val(comment_id);
+            $('html').animate({scrollTop: $('#comment-form').offset().top - 60}, 300);
+            CKEDITOR.instances['id_text'].focus();
+        }
+    </script>
 {% endblock %}
