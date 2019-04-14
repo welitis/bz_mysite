@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load comment_tags %}
+{% load likes_tags %}
 {% block title %}
     {{ blog.title }}
 {% endblock %}
@@ -36,6 +37,11 @@
 
                 </ul>
                 <div class="blog-content">{{ blog.content|safe }}</div>
+                <div class="like" onclick="likeChange(this, '{% get_content_type blog %}', {{ blog.pk }})">
+                    <span class="glyphicon glyphicon-thumbs-up {% get_like_status blog %}"></span>
+                    <span class="liked-num">{% get_likes_num blog %}</span>
+                    <span>喜欢</span>
+                </div>
                 <nav aria-label="...">
                   <ul class="pager">
                       {% if previous_blog %}
@@ -84,6 +90,11 @@
                             <span id="comment_user_{{ comment.pk }}">{{ comment.comment_user.username }}</span>
                             <span>{{ comment.comment_time|date:"Y-m-d H:i:s" }}</span>
                             <span id="comment_{{ comment.pk }}">{{ comment.content|safe }}</span>
+                            <div class="like" onclick="likeChange(this, '{% get_content_type comment %}', {{ comment.pk }})">
+                                <span class="glyphicon glyphicon-thumbs-up {% get_like_status comment %}"></span>
+                                <span class="liked-num">{% get_likes_num comment %}</span>
+                                <span>喜欢</span>
+                            </div>
                             <a href="javascript:reply({{ comment.pk }})">回复</a>
 
                             {% for reply in comment.root_comment.all %}
@@ -94,6 +105,12 @@
                                     <span>{{ comment.comment_user.username }}:</span>
                                     <span id="comment_{{ reply.pk }}">{{ reply.content|safe }}</span>
                                     <a href="javascript:reply({{ reply.pk }})">回复</a>
+                                    <div class="like" onclick="likeChange(this, '{% get_content_type reply %}', {{ reply.pk }})">
+                                        <span class="glyphicon glyphicon-thumbs-up {% get_like_status reply %}"></span>
+                                        <span class="liked-num">{% get_likes_num reply %}</span>
+                                        <span>喜欢</span>
+                                    </div>
+
                                 </div>
                             {% endfor %}
                         </div>
@@ -104,18 +121,51 @@
                 </div>
             </div>
         </div>
+        <!-- Modal -->
+        <div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+              <div class="modal-dialog modal-sm" role="document">
+                    <div class="modal-content">
+                    <form id="login_medal_form" action="{% url 'login_for_medal' %}" method="post">
+                          <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">登录</h4>
+                          </div>
+
+                          <div class="modal-body">
+                            {% csrf_token %}
+                            {% for field in login_model_form %}
+                                {{ field.label_tag }}
+                                {{ field }}
+                            {% endfor %}
+                          <span id="login_medal_tip" class="text-danger">{{ field.errors.as_text }}</span>
+                          </div>
+
+                          <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">登录</button>
+                          </div>
+                    </form>
+                    </div>
+              </div>
+        </div>
     </div>
 
 {% endblock %}
 
 {% block script %}
     <script type="text/javascript">
+        String.prototype.format = function(){
+            var str = this;
+            for (var i =0; i < arguments.length; i++){
+                var str = str.replace(new RegExp('\\{'+ i +'\\}', 'g'), arguments[i]);
+            };
+            return str;
+        }
         function numFormat(num){
             return ('00' + num).substr(-2);
         }
         function timeFormat(timestamp){
             var datetime = new Date(timestamp*1000);
-            var year = numFormat(datetime.getFullYear());
+            var year = datetime.getFullYear();
             var month = numFormat(datetime.getMonth() + 1);
             var day = numFormat(datetime.getDate());
             var hour = numFormat(datetime.getHours());
@@ -123,7 +173,43 @@
             var second = numFormat(datetime.getSeconds());
             return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
         }
-
+        function likeChange(obj, content_type, object_id){
+            var is_like = obj.getElementsByClassName('active').length == 0
+            $.ajax({
+                url: '{% url "like_change" %}',
+                type: 'GET',
+                data: {
+                    content_type: content_type,
+                    object_id: object_id,
+                    is_like: is_like
+                },
+                cache: false,
+                success: function(data){
+                    console.log(data);
+                    if(data['status']=='success'){
+                        // 更新点赞状态
+                        var element = $(obj.getElementsByClassName('glyphicon'));
+                        if(is_like){
+                            element.addClass('active');
+                        }else{
+                            element.removeClass('active');
+                        }
+                        // 更新点赞数量
+                        var liked_num = $(obj.getElementsByClassName('liked-num'));
+                        liked_num.text(data['liked_num']);
+                    }else{
+                        if(data['code']==400){
+                            $('#login_modal').modal('show');
+                        }else{
+                            alert(data['message']);
+                        }
+                    }
+                },
+                error: function(data){
+                    console.log(data);
+                },
+            });
+        }
         $('#comment-form').submit(function(){
              // 判断是否为空
             $("#comment-error").text('');
@@ -147,13 +233,32 @@
                     $("#non-comment").text('');// 清除暂无评论
                     if($("#reply_comment_id").val()=='0'){
                         // 插入评论
-                        var comment_html='<div class="comment">'+ '<span id="comment_user_'+data['pk']+'">'+data['username']+
-                        '</span> <span>'+timeFormat(data['comment_time'])+'</span> <span id="comment_'+data['pk']+'">'+data['text']+'</span><a href="javascript:reply('+data['pk']+')">回复</a> </div>';
+                        var comment_html = '<div class="comment"> <span id="comment_user_{0}">{1}</span> '+
+                            '<span>{2}</span> '+
+                            '<span id="comment_{0}">{3}</span>'+
+                            '<div class="like" onclick="likeChange(this, \'{4}\', {0})">'+
+                                '<span class="glyphicon glyphicon-thumbs-up"></span> '+
+                                '<span class="liked-num">0</span> '+
+                                '<span>喜欢</span>'+
+                            '</div>'+
+                            '<a href="javascript:reply({0})">回复</a></div>';
+                        comment_html = comment_html.format(data['pk'], data['username'], timeFormat(data['comment_time']), data['text'], data['content_type_model']);
                         $("#comment-list").prepend(comment_html);
                     }else{
                         // 插入回复
                         var comment_html = '<div class="reply">'+
-                            '<span id="comment_user_'+data['pk']+'">'+data['username']+'</span><span>'+timeFormat(data['comment_time'])+'</span> <span>回复</span> <span>'+data['username']+':</span> <span id="comment_'+data['pk']+'">'+data['text']+'</span><a href="javascript:reply('+data['pk']+')">回复</a></div>'
+                            '<span id="comment_user_{0}">{1}</span>'+
+                            '<span>{2}</span>'+
+                            '<span>回复</span>'+
+                            '<span>{3}:</span>'+
+                            '<span id="comment_{0}">{4}</span>'+
+                            '<a href="javascript:reply({0})">回复</a>'+
+                            '<div class="like" onclick="likeChange(this, \'{5}\', {0})">'+
+                                '<span class="glyphicon glyphicon-thumbs-up"></span> '+
+                                '<span class="liked-num">0</span> '+
+                                '<span>喜欢</span>'+
+                            '</div> </div>';
+                        comment_html = comment_html.format(data['pk'],data['username'],timeFormat(data['comment_time']),data['reply_to'],data['text'],data['content_type_model']);
                         $("#comment_"+data['root_id']).parent().append(comment_html);
                     }
                     $('#comment-error').text("评论成功");
@@ -185,5 +290,26 @@
             $('html').animate({scrollTop: $('#comment-form').offset().top - 60}, 300);
             CKEDITOR.instances['id_text'].focus();
         }
+
+        $("#login_medal_form").submit(function(){
+            $.ajax({
+                url: '{% url "login_for_medal" %}',
+                type: 'POST',
+                data: $(this).serialize(),
+                cache: false,
+                success: function(data){
+                    if(data['status']=='success'){
+                        window.location.reload();
+                    }else{
+                        $('#login_medal_tip').text('用户名或密码不正确');
+                        $('[name="password"]').val('');
+                    }
+                },
+                error: function(xhr){
+                    console.log(xhr);
+                }
+            });
+            return false;
+        })
     </script>
 {% endblock %}

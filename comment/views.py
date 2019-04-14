@@ -1,9 +1,9 @@
 import datetime
 
-from django.shortcuts import render, redirect, reverse
 from .models import Comment
 from .forms import CommentForm
 from django.http import JsonResponse
+from django.contrib.contenttypes.models import ContentType
 # Create your views here.
 
 
@@ -32,6 +32,7 @@ def update_comment(request):
             data['username'] = comment.comment_user.username
             data['comment_time'] = comment.comment_time.timestamp()
             data['text'] = comment.content
+            data['content_type_model'] = ContentType.objects.get_for_model(comment).model
             if not parent is None:
                 data['reply_to'] = comment.reply_to.username
                 data['root_id'] = comment.root_id

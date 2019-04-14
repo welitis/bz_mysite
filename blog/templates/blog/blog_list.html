@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load comment_tags %}
+{% load likes_tags %}
 {% block title %}
-    我的网站
+    我的网站|列表
 {% endblock %}
 
 {% block head %}
@@ -29,6 +30,7 @@
                                 {{ blog.created_time|date }}
                                 <span>阅读</span>({{ blog.get_read_num }})
                                 <span>评论</span>({% get_comment_count blog %})
+                                <span>点赞</span>({% get_likes_num blog %})
                             </p>
                         </div>
                     {% empty %}
