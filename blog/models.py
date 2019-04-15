@@ -1,8 +1,11 @@
-from django.db import models
-from django.contrib.auth.models import User
 from ckeditor_uploader.fields import RichTextUploadingField
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
+from django.urls import reverse
+
 from read_statistics.models import *
+
+
 # Create your models here.
 
 
@@ -34,7 +37,16 @@ class Blog(models.Model, ReadNumExpandMethod):
         ordering = ['-last_updated', '-created_time']
         verbose_name = verbose_name_plural = "博客"
 
+    def get_url(self):
+        url = reverse('blog:blog_detail', args=(self.pk,))
+        return url
 
+    def get_email(self):
+        email = self.author.email
+        if email:
+            return email
+        else:
+            return ''
 # class ReadNum(models.Model):
 #     read_num = models.IntegerField(default=0)
 #     blog = models.OneToOneField(Blog, on_delete=models.CASCADE)
@@ -46,4 +58,3 @@ class Blog(models.Model, ReadNumExpandMethod):
 #         db_table = "read_num"
 #         ordering = ['-read_num']
 #         verbose_name = verbose_name_plural = "阅读量"
-

@@ -1,11 +1,12 @@
+from django.conf import settings
+from django.core.paginator import Paginator
+from django.db.models import Count
 from django.shortcuts import render, get_object_or_404
 
-from .models import *
-from django.conf import settings
-from django.db.models import Count
-from django.core.paginator import Paginator
 from read_statistics.utils import read_statistics_once_read
-from user.forms import LoginForm
+from .models import *
+
+
 # Create your views here.
 
 
@@ -44,7 +45,6 @@ def get_blog_list_common_data(request, blogs_all_list):
         blog_dates_dict[blog_date] = Blog.objects.filter(created_time__year=blog_date.year,
                                                          created_time__month=blog_date.month).count()
 
-
     context = {}
     context['page_range'] = page_range
     context['page_of_blogs'] = page_of_blogs
@@ -57,7 +57,7 @@ def get_blog_list_common_data(request, blogs_all_list):
 def blog_list(request):
     blogs = Blog.objects.all()
     context = get_blog_list_common_data(request, blogs)
-    return render(request,'blog/blog_list.html', context)
+    return render(request, 'blog/blog_list.html', context)
 
 
 def blog_type_list(request, blog_type_pk):
@@ -65,7 +65,7 @@ def blog_type_list(request, blog_type_pk):
     blogs = Blog.objects.filter(blog_type=blog_type).all()
     context = get_blog_list_common_data(request, blogs)
     context['blog_type'] = blog_type
-    return render(request,'blog/blog_type_list.html', context)
+    return render(request, 'blog/blog_type_list.html', context)
 
 
 def blog_date_list(request, year, month):
@@ -74,7 +74,7 @@ def blog_date_list(request, year, month):
     context = get_blog_list_common_data(request, blogs)
     # 获取按月分类的datetime对象列表
     context['blog_cur_date'] = "%s年%s月" % (year, month)
-    return render(request,'blog/blog_date_list.html', context)
+    return render(request, 'blog/blog_date_list.html', context)
 
 
 def blog_detail(request, blog_pk):
@@ -86,7 +86,7 @@ def blog_detail(request, blog_pk):
     context['previous_blog'] = Blog.objects.filter(created_time__gt=context['blog'].created_time).last()
     context['next_blog'] = Blog.objects.filter(created_time__lt=context['blog'].created_time).first()
     context['user'] = request.user
-    response = render(request,'blog/blog_detail.html', context)
+    response = render(request, 'blog/blog_detail.html', context)
     if read_cookie_key:
         response.set_cookie(read_cookie_key, 'true')
     return response
