@@ -69,7 +69,6 @@ def blog_type_list(request, blog_type_pk):
 
 
 def blog_date_list(request, year, month):
-    page_num = request.GET.get('page', 1)  # 根据参数返回对应页码的页面
     blogs = Blog.objects.filter(created_time__year=year, created_time__month=month)
     context = get_blog_list_common_data(request, blogs)
     # 获取按月分类的datetime对象列表

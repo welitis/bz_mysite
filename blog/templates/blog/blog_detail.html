@@ -104,12 +104,12 @@
                                     <span>回复</span>
                                     <span>{{ comment.comment_user.get_nickname_or_username }}:</span>
                                     <span id="comment_{{ reply.pk }}">{{ reply.content|safe }}</span>
-                                    <a href="javascript:reply({{ reply.pk }})">回复</a>
                                     <div class="like" onclick="likeChange(this, '{% get_content_type reply %}', {{ reply.pk }})">
                                         <span class="glyphicon glyphicon-thumbs-up {% get_like_status reply %}"></span>
                                         <span class="liked-num">{% get_likes_num reply %}</span>
                                         <span>喜欢</span>
                                     </div>
+                                    <a href="javascript:reply({{ reply.pk }})">回复</a>
                                 </div>
                             {% endfor %}
                         </div>
@@ -120,32 +120,7 @@
                 </div>
             </div>
         </div>
-        <!-- Modal -->
-        <div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-              <div class="modal-dialog modal-sm" role="document">
-                    <div class="modal-content">
-                    <form id="login_medal_form" action="{% url 'login_for_medal' %}" method="post">
-                          <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" id="myModalLabel">登录</h4>
-                          </div>
 
-                          <div class="modal-body">
-                            {% csrf_token %}
-                            {% for field in login_model_form %}
-                                {{ field.label_tag }}
-                                {{ field }}
-                            {% endfor %}
-                          <span id="login_medal_tip" class="text-danger">{{ field.errors.as_text }}</span>
-                          </div>
-
-                          <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">登录</button>
-                          </div>
-                    </form>
-                    </div>
-              </div>
-        </div>
     </div>
 
 {% endblock %}
@@ -251,12 +226,14 @@
                             '<span>回复</span>'+
                             '<span>{3}:</span>'+
                             '<span id="comment_{0}">{4}</span>'+
-                            '<a href="javascript:reply({0})">回复</a>'+
+
                             '<div class="like" onclick="likeChange(this, \'{5}\', {0})">'+
                                 '<span class="glyphicon glyphicon-thumbs-up"></span> '+
                                 '<span class="liked-num">0</span> '+
                                 '<span>喜欢</span>'+
-                            '</div> </div>';
+                            '</div> ' +
+                            '<a href="javascript:reply({0})">回复</a>'+
+                            '</div>';
                         comment_html = comment_html.format(data['pk'],data['username'],timeFormat(data['comment_time']),data['reply_to'],data['text'],data['content_type_model']);
                         $("#comment_"+data['root_id']).parent().append(comment_html);
                     }
