@@ -107,7 +107,7 @@ def change_nickname(request):
     context['submit_text'] = '修改'
     context['form_title'] = '修改昵称'
     context['return_back_url'] = reverse('user_info')
-    return render(request, 'forms.html', context)
+    return render(request, 'user/change_nickname.html', context)
 
 
 def bind_email(request):
