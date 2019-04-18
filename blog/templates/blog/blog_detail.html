@@ -260,6 +260,10 @@
 
         // 给回复链接绑定事件
         function reply(comment_id){
+            {% if not user.isauthenticated %}
+            $('#login_modal').modal('show');
+            return false;
+            {% endif %}
             // 设置值
             var html = $("#comment_user_" + comment_id).html()+":"+$("#comment_" + comment_id).html();
             $("#reply-content").html(html);

@@ -15,7 +15,7 @@ from .base import *
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -39,5 +39,50 @@ EMAIL_HOST_USER = '943446906@qq.com'
 EMAIL_HOST_PASSWORD = 'pujourjuinumbdda'    #授权码
 EMAIL_SUBJECT_PREFIX = '[王希知的博客]'
 EMAIL_USE_TLS = True    # 与SMTP服务器通信时，是否启动TLS链接（安全链接）
+
+ADMINS = (
+    ('admin', 'welisit@qq.com'),
+)
+
+# 日志文件
+"""
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module}{message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'C:\\Users\\Python\\PycharmProjects\\bzdjango\\mysite.log',
+        },
+        'mail_admins': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'simple'
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console', 'mail_admins'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+"""
 
 

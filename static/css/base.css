@@ -11,3 +11,12 @@ body{
 .navbar{
     margin-bottom: 20px;
 }
+
+div.modal-footer>div.website-info{
+    color: #555;
+    text-align: center;
+}
+
+div.footer{
+    margin-top: 2em;
+}

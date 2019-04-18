@@ -66,9 +66,17 @@
 
 {% block content %}
 {% endblock %}
+
+<!-- footer -->
+<div class="modal-footer footer">
+    <div class="website-info">
+        <p>粤ICP备18135148号-1 Copyright©2018 Welisit.com 版权所有</p>
+        <p>意见反馈或联系我 （welisit@qq.com）</p>
+    </div>
+</div>
+
 <!-- Modal -->
 {% if not user.is_authenticated %}
-
 <div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
@@ -96,6 +104,7 @@
     </div>
 </div>
 {% endif %}
+
 <script src="{% static 'js/jquery-1.11.3.js' %}"></script>
 <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 <script src="{% static 'bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
