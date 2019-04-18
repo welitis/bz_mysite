@@ -29,8 +29,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mysitedb',
-        'USER': os.environ['USER'],
-        'PASSWORD': os.environ['PASSWORD'],
+        'USER': os.environ['DATABASE_USER'],
+        'PASSWORD': os.environ['DATABASE_PASSWORD'],
         'HOST': 'localhost',
         'PORT': '3306',
     }
