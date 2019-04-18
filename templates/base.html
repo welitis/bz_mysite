@@ -67,6 +67,8 @@
 {% block content %}
 {% endblock %}
 <!-- Modal -->
+{% if not user.is_authenticated %}
+
 <div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
@@ -93,11 +95,13 @@
         </div>
     </div>
 </div>
-
+{% endif %}
 <script src="{% static 'js/jquery-1.11.3.js' %}"></script>
 <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 <script src="{% static 'bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
 {% block script %}{% endblock %}
+
+{% if not user.is_authenticated %}
 <script type="text/javascript">
     $("#login_medal_form").submit(function (){
         $.ajax({
@@ -129,5 +133,7 @@
     }
 
 </script>
+{% endif %}
+
 </body>
 </html>
