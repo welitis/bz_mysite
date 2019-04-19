@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from .models import LikeCount, LikeRecord
 from django.http import JsonResponse
 from django.contrib.contenttypes.models import ContentType

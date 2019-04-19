@@ -39,13 +39,13 @@ EMAIL_HOST_USER = '943446906@qq.com'
 EMAIL_HOST_PASSWORD = 'pujourjuinumbdda'    #授权码
 EMAIL_SUBJECT_PREFIX = '[王希知的博客]'
 EMAIL_USE_TLS = True    # 与SMTP服务器通信时，是否启动TLS链接（安全链接）
-
+SERVER_EMAIL = '943446906@qq.com'
 ADMINS = (
     ('admin', 'welisit@qq.com'),
 )
 
 # 日志文件
-"""
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -66,9 +66,10 @@ LOGGING = {
             'filename': 'C:\\Users\\Python\\PycharmProjects\\bzdjango\\mysite.log',
         },
         'mail_admins': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
-            'formatter': 'simple'
+            'formatter': 'verbose',
+            'include_html': True
         },
         'console': {
             'class': 'logging.StreamHandler',
@@ -77,12 +78,17 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console', 'mail_admins'],
+            'handlers': ['file', 'console'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
             'propagate': False,
         },
     },
 }
-"""
+
 
 

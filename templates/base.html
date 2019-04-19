@@ -92,8 +92,9 @@
                     {% for field in login_model_form %}
                         {{ field.label_tag }}
                         {{ field }}
+                        <span class="text-danger">{{ field.errors.as_text }}</span>
                     {% endfor %}
-                    <span id="login_medal_tip" class="text-danger">{{ field.errors.as_text }}</span>
+                    <span id="login_medal_tip" class="text-danger"></span>
                 </div>
 
                 <div class="modal-footer">
