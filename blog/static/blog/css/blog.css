@@ -63,6 +63,14 @@ div#reply-content_container{
 #reply-content_container>p{
     border-bottom: 1px dashed #ddd;
     padding-bottom: 0.5em;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+#reply-content_container .comment_title_btn{
+    float:right;
+    position: relative;
+    top: -50px;
 }
 /* 点赞 */
 div.like{

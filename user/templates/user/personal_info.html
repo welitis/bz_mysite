@@ -20,7 +20,7 @@
                     <h2>{{ user.username }}</h2>
                     <ul>
                         <li>昵称：{{ user.get_nickname }}<a href="{% url 'change_nickname' %}"> 修改昵称</a></li>
-                        <li>邮箱：{% if user.email %}{{ user.email }}{% else %}未绑定<a href="{% url 'bind_email' %}"> 绑定邮箱</a>
+                        <li>邮箱：{% if user.email %}{{ user.email }}<a href="javascript:bind_cancel()">解除绑定</a>{% else %}未绑定<a href="{% url 'bind_email' %}"> 绑定邮箱</a>
                             </li>{% endif %}
                         <li>上一次登录的时间：{{ user.last_login|date:'Y-m-d  G:H:s' }}</li>
                         <li><a href="{% url 'change_password' %}">修改密码</a></li>
@@ -39,4 +39,28 @@
 
     </div>
 
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        function bind_cancel(){
+            if (confirm('您确定要解除绑定吗？一旦解除后将无法找回密码和其他实时邮件通知服务')){
+                $.ajax({
+                    url: '{% url "cancel_email" %}',
+                    cache: false,
+                    type: 'GET',
+                    data:{
+
+                    },
+                    success: function (data) {
+                        if (data['status']=='success'){
+                            window.location.reload();
+                        }else{
+                            alert('解除绑定出错！');
+                        };
+                    }
+                })
+            }
+        }
+    </script>
 {% endblock %}

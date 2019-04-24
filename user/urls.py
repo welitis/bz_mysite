@@ -14,4 +14,5 @@ urlpatterns = [
     path('ajax_confirm/', views.ajax_confirm, name='ajax_confirm'),
     path('change_password/', views.change_password, name='change_password'),
     path('forgot_password/', views.forgot_password, name='forgot_password'),
+    path('cancel_email/', views.cancel_email, name='cancel_email'),
 ]

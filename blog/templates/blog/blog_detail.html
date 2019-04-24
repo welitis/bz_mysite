@@ -67,7 +67,8 @@
                         <form id="comment-form" action="{% url 'comment:update_comment' %}" method="post" style="overflow: hidden">
                             {% csrf_token %}
                             <div id="reply-content_container" style="display: none;">
-                                <p>回复</p>
+                                <p>回复:<span id="reply-user"></span></p>
+                                <button id="reply-cancel" type="button" class="btn btn-warning comment_title_btn" style="display: block;">取消回复</button>
                                 <div id="reply-content"></div>
                             </div>
                             <div class="form-group">
@@ -85,7 +86,7 @@
                     <h3 class="comment-area-title">评论列表</h3>
                     <div id="comment-list">
                     {% get_comment_list blog as comments %}
-                        {% for comment in comments %}
+                        {% for comment in page_of_comment.object_list %}
                         <div class="comment">
                             <span id="comment_user_{{ comment.pk }}">{{ comment.comment_user.get_nickname_or_username }}</span>
                             <span>{{ comment.comment_time|date:"Y-m-d H:i:s" }}</span>
@@ -118,10 +119,60 @@
                     {% endfor %}
                     </div>
                 </div>
+                <nav aria-label="Page navigation" class=" paginator">
+                    <ul class="pagination">
+                        <!-- 判断上一页 -->
+                        {% if page_of_comment.has_previous %}
+                            <li>
+                                <a href="?page={{ page_of_comment.number|add:-1 }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="disabled">
+                                <span aria-hidden="true">&laquo;</span>
+                            </li>
+                        {% endif %}
+                        <!-- 所有页码 -->
+                        {% for page_num in page_range %}
+                            {% if page_num == page_of_comment.number %}
+
+                                <li class="active"><span>{{ page_num }}<span class="sr-only">(current)</span></span>
+                                </li>
+                            {% else %}
+                                {% if page_num == "..." %}
+                                    <li><span>{{ page_num }}<span class="sr-only">(current)</span></span></li>
+                                {% else %}
+                                    <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        <!-- 判断下一页 -->
+                        {% if page_of_comment.has_next %}
+                            <li>
+                                <a href="?page={{ page_of_comment.number|add:1 }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="disabled">
+                                <span aria-hidden="true">&raquo;</span>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+                    <p>
+                        一共有{{ page_of_comment.paginator.count }}条评论,
+                        当前第{{ page_of_comment.number }}页,
+                        共{{ page_of_comment.paginator.num_pages }}页
+                    </p>
+                </nav>
             </div>
         </div>
 
     </div>
+
+
 
 {% endblock %}
 
@@ -150,6 +201,7 @@
             return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
         }
         function likeChange(obj, content_type, object_id){
+            $('#comment-error').text('');
             var is_like = obj.getElementsByClassName('active').length == 0
             $.ajax({
                 url: '{% url "like_change" %}',
@@ -187,6 +239,7 @@
             });
         }
         $('#comment-form').submit(function(){
+            $('#comment-error').text('');
              // 判断是否为空
             $("#comment-error").text('');
             if (CKEDITOR.instances['id_text'].document.getBody().getText().trim()==''){
@@ -260,19 +313,31 @@
 
         // 给回复链接绑定事件
         function reply(comment_id){
+            $('#comment-error').text('');
             {% if not user.is_authenticated %}
             $('#login_modal').modal('show');
             return false;
             {% endif %}
             // 设置值
-            var html = $("#comment_user_" + comment_id).html()+":"+$("#comment_" + comment_id).html();
+            var html = $("#comment_" + comment_id).html();
             $("#reply-content").html(html);
+            $("#reply-user").html($("#comment_user_" + comment_id).text());
             $("#reply-content_container").show();
             $("#reply_comment_id").val(comment_id);
             $('html').animate({scrollTop: $('#comment-form').offset().top - 60}, 300);
             CKEDITOR.instances['id_text'].focus();
         }
 
+        // 取消回复
+        $("#reply-cancel").click(function(){
+            $('#comment-error').text('');
+            // 清除回复id
+            $("#reply_comment_id").val('0');
+            // 关闭回复显示
+            $("#reply-content_container").hide();
+            // 清空编辑框的内容
+            CKEDITOR.instances['id_text'].setData('');
+        });
         $("#login_medal_form").submit(function(){
             $.ajax({
                 url: '{% url "login_for_medal" %}',

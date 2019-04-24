@@ -1,9 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
-
 from .forms import CommentForm
 from .models import Comment
-
 
 # Create your views here.
 
@@ -49,3 +47,6 @@ def update_comment(request):
             data['data'] = comment_form.errors
         return JsonResponse(data)
     return JsonResponse({'status': 'error'})
+
+
+

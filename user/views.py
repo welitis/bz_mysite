@@ -189,6 +189,20 @@ def ajax_confirm(request):
     return JsonResponse(data)
 
 
+def cancel_email(request):
+    data = {}
+    if request.is_ajax():
+        if request.method == "GET":
+            user = request.user
+            if user.is_authenticated:
+                user.email = ''
+                user.save()
+                data['status'] = 'success'
+                return JsonResponse(data)
+    data['status'] = 'error'
+    return JsonResponse(data)
+
+
 def change_password(request):
     if request.method == 'POST':
         form = ChangePasswordForm(request.POST, user=request.user)
