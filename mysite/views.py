@@ -12,22 +12,27 @@ def get_7_days_hot_blogs():
     return blogs[:7]
 
 
+# 缓存通用执行函数
+def cache_handle(keyname, func, *args):
+    value = cache.get(keyname)
+    if value is None: # 缓存不存在则向数据库查找
+        if args:
+            value = func(*args)
+        else:
+            value = func()
+        cache.set(keyname, value, 3600)
+        return value
+    return value
+
+
 def home(request):
     blog_content_type = ContentType.objects.get_for_model(Blog)
-    read_nums, dates = get_seven_days_read_data(blog_content_type)
-
-    # 获取7天热门博客的缓存数据
-    sevenday_hot_data = cache.get('sevenday_hot_data')
-    if sevenday_hot_data is None:
-        sevenday_hot_data = get_7_days_hot_blogs()
-        cache.set('sevenday_hot_data', sevenday_hot_data, 3600)
-
     context = {}
-    context['read_nums'] = read_nums
-    context['dates'] = dates
-    context['today_hot_data'] = get_today_hot_data(blog_content_type)
-    context['yesterday_hot_data'] = get_yesterday_hot_data(blog_content_type)
-    context['sevenday_hot_data'] = sevenday_hot_data
+    context['read_nums'] = cache_handle('read_nums', get_seven_days_read_data, blog_content_type)[0]
+    context['dates'] = cache_handle('dates', get_seven_days_read_data, blog_content_type)[1]
+    context['today_hot_data'] = cache_handle('today_hot_data', get_today_hot_data, blog_content_type)
+    context['yesterday_hot_data'] = cache_handle('yesterday_hot_data', get_yesterday_hot_data, blog_content_type)
+    context['sevenday_hot_data'] = cache_handle('sevenday_hot_data', get_7_days_hot_blogs)
     return render(request, 'home.html', context)
 
 
