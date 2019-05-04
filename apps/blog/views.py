@@ -86,7 +86,7 @@ def blog_detail(request, blog_pk):
     context['next_blog'] = Blog.objects.filter(created_time__lt=context['blog'].created_time).first()
 
     content_type = ContentType.objects.get(model='blog')
-    comment_list = Comment.objects.filter(content_type=content_type, object_id=blog_pk).all()
+    comment_list = Comment.objects.filter(content_type=content_type, object_id=blog_pk).order_by('-comment_time')
     paginator = Paginator(comment_list, 5)
     page_of_comment = paginator.get_page(request.GET.get('page', 1))
     current_page_num = page_of_comment.number

@@ -109,6 +109,8 @@
 <script src="{% static 'js/jquery-1.11.3.js' %}"></script>
 <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 <script src="{% static 'bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'prism/prism.css' %}">
 {% block script %}{% endblock %}
 
 {% if not user.is_authenticated %}

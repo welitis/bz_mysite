@@ -130,19 +130,21 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'full',
+        'extraPlugins' : ','.join(['codesnippet', 'prism', 'widget', 'lineutils']),
+        'tabSpaces': 4,
     },
     'comment_ckeditor': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
             ['Bold', 'Italic', 'Underline', 'TextColor'],
             ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['Link', 'Unlink'],
+            ['Link', 'Unlink', "CodeSnippet"],
             ['RemoveFormat', 'Smiley']
         ],
         'height': '200',
         'width': "auto",
         'tabSpaces': 4,
-
+        'extraPlugins' : ','.join(['codesnippet', 'prism', 'widget', 'lineutils']),
     }
 }
 
