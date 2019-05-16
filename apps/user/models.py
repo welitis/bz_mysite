@@ -5,6 +5,22 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 
+class OAuthRelationship(models.Model):
+    OAUTH_TYPE = (
+        (1, 'QQ'),
+        (2, 'WeChat'),
+        (3, 'WeiBo'),
+        (4, 'Github'),
+        (5, 'Twitter')
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    openid = models.CharField(max_length=128)
+    oauth_type = models.IntegerField(choices=OAUTH_TYPE)
+
+    def __str__(self):
+        return "<OAuthRelationship %s>" % self.user.username
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户名")
     nickname = models.CharField('昵称', max_length=50)

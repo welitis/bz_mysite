@@ -1,20 +1,38 @@
 import string
 import random
 import time
+import json
+from urllib.parse import urlencode, parse_qs
+from urllib.request import urlopen
+
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail
+from django.conf import settings
+from django.views.generic import View
 
-from .forms import RegForm, LoginForm, ChangeNicknameForm, BindEmailForm, ChangePasswordForm, ForgotPasswordForm
-from .models import Profile
+from .forms import RegForm, LoginForm, ChangeNicknameForm, BindEmailForm, ChangePasswordForm, ForgotPasswordForm, BindQQForm
+from .models import Profile, OAuthRelationship
 
 
 from django.shortcuts import render
 
 # Create your views here.
+
+
+class OAuthLoginView(View):
+    def get(self, request, oauth_type):
+        if oauth_type == "qq":
+            params = {
+                'response_type': 'code',
+                'redirect_uri': settings.QQ_REDIRECT_URI,
+                'state': settings.QQ_STATE,
+                'client_id': settings.QQ_APP_ID,
+            }
+            return redirect('https://graph.qq.com/oauth2.0/authorize?' + urlencode(params))
 
 
 def login_views(request):
@@ -201,6 +219,65 @@ def cancel_email(request):
                 return JsonResponse(data)
     data['status'] = 'error'
     return JsonResponse(data)
+
+
+def login_by_qq(request):
+    code = request.GET.get('code', '')      # 获取授权码
+    state = request.GET.get('state', '')
+
+    if state != settings.QQ_STATE:
+        raise Exception("state error")
+
+    # 通过授权码获取Access_token
+    params = {
+        'grant_type': 'authorization_code',
+        'client_id': settings.QQ_APP_ID,
+        'client_secret': settings.QQ_APP_KEY,
+        'code': code,
+        'redirect_uri': settings.QQ_REDIRECT_URL,
+    }
+    url = 'https://graph.qq.com/oauth2.0/token?' + urlencode(params)
+    response = urlopen(url)
+    data = response.read().decode('utf-8')  # access_token=FE04****CCE2&expires_in=7776000&refresh_token=88E4*****BE14
+    access_token = parse_qs(data).get('access_token')[0]
+
+    # 获取openid
+    response = urlopen('https://graph.qq.com/oauth2.0/me?access_token=' + access_token)
+    data = response.read().decode('utf-8')  # callback( {"client_id":"YOUR_APPID","openid":"YOUR_OPENID"} );
+    openid = json.loads(data[10:-4])['openid']
+
+    # 判断openid是否有关联的用户
+    if OAuthRelationship.objects.filter(openid=openid, oauth_type=1).exists():
+        relationship = OAuthRelationship.objects.get(openid=openid, oauth_type=1)
+        login(request, relationship.user)
+        return redirect(reverse('home'))
+    else:       # 用户没有绑定关联的账户
+        request.session['openid'] = openid
+        request.session['oauth_type'] = 1
+        return redirect(reverse('bind_accout'))     # 没有绑定账户，则要求创建账户
+
+
+def bind_accout(request):
+    context = {}
+    if request.method == 'POST':
+        login_form = BindQQForm(request.POST)
+        if login_form.is_valid():
+            user = login_form.cleaned_data.get('user')
+            login(request, user)
+            openid = request.session.pop('openid')
+            oauth_type = request.session.pop('oauth_type')
+            if OAuthRelationship.objects.filter(openid=openid, oauth_type=int(oauth_type)).exists():
+                oauth_obj = OAuthRelationship(user=user, openid=openid, oauth_type=int(oauth_type))
+                oauth_obj.save()
+            return redirect(request.POST.get('from', reverse('home')))
+        else:
+            context['from'] = request.POST.get('from', reverse('home'))
+    else:
+        login_form = LoginForm()
+
+    context['login_form'] = login_form
+    context.setdefault('from', request.GET.get('from', reverse('home')))
+    return render(request, 'user/bind_account.html', context)
 
 
 def change_password(request):

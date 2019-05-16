@@ -15,4 +15,7 @@ urlpatterns = [
     path('change_password/', views.change_password, name='change_password'),
     path('forgot_password/', views.forgot_password, name='forgot_password'),
     path('cancel_email/', views.cancel_email, name='cancel_email'),
+    path('login_by_qq', views.login_by_qq, name='login_by_qq'),    # welisit.com/user/login_by_qq
+    path('bind_accout/', views.bind_accout, name='bind_accout'),
+    path('oauth_login/<oauth_type>', views.OAuthLoginView.as_view(), name='oauth_login'),
 ]

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate, login
 from blog.models import User
+from .models import OAuthRelationship
 
 
 class LoginForm(forms.Form):
@@ -292,5 +293,36 @@ class ForgotPasswordForm(forms.Form):
         return self.cleaned_data
 
 
+class BindQQForm(forms.Form):
+    username_or_email = forms.CharField(label='用户名或邮箱', label_suffix='', max_length=25, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': '请输入用户名或邮箱',
+        'autofocus': 'autofocus',
+    }))
+    password = forms.CharField(label='密码', label_suffix='', max_length=16, widget=forms.PasswordInput(
+        attrs={
+            'class': 'form-control',
+            'placeholder': '请输入密码'
+        }
+    ))
+
+    def clean(self):
+        username_or_email = self.cleaned_data.get('username_or_email', '')
+        password = self.cleaned_data.get('password', '')
+        user = authenticate(username=username_or_email, password=password)
+        if not user:
+            if User.objects.filter(email=username_or_email).exists():
+                username = User.objects.get(email=username_or_email).username
+                user = authenticate(username=username, password=password)
+                if user:
+                    self.cleaned_data['user'] = user
+                    return self.cleaned_data
+            raise forms.ValidationError('就是不让你通过，哈哈哈')
+        else:
+            self.cleaned_data['user'] = user
+
+        if OAuthRelationship.objects.filter(user=user, oauth_type=1).exists():
+            raise forms.ValidationError("用户已绑定qq账号")
+        return self.cleaned_data
 
 

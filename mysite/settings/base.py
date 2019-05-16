@@ -170,4 +170,11 @@ CACHES = {
 }
 
 
+# qq登录配置
+QQ_APP_ID = '101574503'
+QQ_APP_KEY = os.environ.get('QQ_KEY')
+QQ_REDIRECT_URI = 'https://welisit.com/user/login_by_qq'
+QQ_STATE = 'welisit'
+
+
 
